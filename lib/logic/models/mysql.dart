@@ -16,6 +16,8 @@
 //   }
 // }
 
+import '../../screens/global.dart';
+
 class MyData {
   final String blood_pressure_systolic;
   final String blood_pressure_diastolic;
@@ -38,12 +40,12 @@ class MyData {
 
   factory MyData.fromJson(Map<String, dynamic> json) {
     return MyData(
-      blood_pressure_systolic: json['sP'],
-      blood_pressure_diastolic: json['dP'],
-      body_temperature: json['bT'],
+      blood_pressure_systolic: xorDecipher(json['sP'], "s"),
+      blood_pressure_diastolic: xorDecipher(json['dP'], "s"),
+      body_temperature: xorDecipher(json['bT'], "s"),
       device_id: json['di'],
-      pulse_rate: json['hP'],
-      oxygen_saturation: json['oS'],
+      pulse_rate: xorDecipher(json['hP'], "s"),
+      oxygen_saturation: xorDecipher(json['oS'], "s"),
       vitals_id: json['id'],
       created_date: json['created_date'],
     );

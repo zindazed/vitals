@@ -15,6 +15,7 @@ import 'package:vital_monitor/logic/models/userProvider.dart';
 // import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'global.dart';
 
 class DeviceMgt extends StatefulWidget {
   String? userId;
@@ -28,7 +29,6 @@ class _DeviceMgtState extends State<DeviceMgt> {
   String? userId;
   List<MyPatients> patientsList = [];
   List<User> usersList = [];
-  late Timer _timer;
   DateTime? _selectedDate;
 
   final TextEditingController _deviceId = TextEditingController();
@@ -52,14 +52,13 @@ class _DeviceMgtState extends State<DeviceMgt> {
   @override
   void initState() {
     super.initState();
+    // _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
     fetchData2();
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      fetchData2();
-    }); // Call the fetchData method to retrieve the data
+    // }); // Call the fetchData method to retrieve the data
   }
 
   Future<List<MyPatients>> fetchData() async {
-    final url = 'https://patientvitalsproject.000webhostapp.com//device.php';
+    final url = '$host/device.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -77,8 +76,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
   }
 
   Future<List<User>> fetchUsersData() async {
-    final response = await http.get(Uri.parse(
-        'https://patientvitalsproject.000webhostapp.com//userscaretakers.php'));
+    final response = await http.get(Uri.parse('$host/userscaretakers.php'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -105,7 +103,6 @@ class _DeviceMgtState extends State<DeviceMgt> {
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 
@@ -154,56 +151,59 @@ class _DeviceMgtState extends State<DeviceMgt> {
                           width: 2.0,
                         ),
                       ),
-                      child: Center(
-                        // Center is a layout widget. It takes a single child and positions it
-                        // in the middle of the parent.
+                      child: (patientsList.isEmpty)
+                          ? Center(child: CircularProgressIndicator())
+                          : Center(
+                              // Center is a layout widget. It takes a single child and positions it
+                              // in the middle of the parent.
 
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: patientsList.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            MyPatients data = patientsList[index];
-                            return OutlinedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromRGBO(0, 33, 71,
-                                    1), // Set the button background color to green
-                                side: BorderSide.none,
-                              ),
-                              child: Container(
-                                margin:
-                                    const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color:
-                                      const Color.fromRGBO(255, 255, 255, 0.2),
-                                  border: Border.all(
-                                    width: 2.0,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Text(data.device_id,
-                                            style: TextStyle(
-                                                fontSize: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.055,
-                                                color: Colors.white)),
-                                      ],
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: patientsList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  MyPatients data = patientsList[index];
+                                  return OutlinedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromRGBO(
+                                          0,
+                                          33,
+                                          71,
+                                          1), // Set the button background color to green
+                                      side: BorderSide.none,
                                     ),
-                                  ],
-                                ),
+                                    child: Container(
+                                      margin: const EdgeInsets.fromLTRB(
+                                          10, 10, 10, 10),
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                        color: const Color.fromRGBO(
+                                            255, 255, 255, 0.2),
+                                        border: Border.all(
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              Text(data.device_id,
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      color: Colors.white)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
                     ),
                     Positioned(
                       top: -2, // Adjust the top position to control the overlap
@@ -224,10 +224,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                           child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text("Device Management",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.055))),
+                                  style: TextStyle(fontSize: 20))),
                         ),
                       ),
                     ),
@@ -239,7 +236,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                         child: Text(
                           'Select Date of Birth',
                           style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.042,
+                            fontSize: 15,
                           ),
                         ),
                       ),
@@ -250,7 +247,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                             : 'No date selected',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width * 0.042,
+                          fontSize: 15,
                         ),
                       ),
                     ],
@@ -266,10 +263,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                               width: 90,
                               child: Text("Device id: ",
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.047)),
+                                      color: Colors.white, fontSize: 17)),
                             ),
                             Expanded(
                               child:
@@ -279,9 +273,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                                 controller: _deviceId,
                                 style: TextStyle(
                                     color: Colors.black,
-                                    fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.042), // Set the text color
+                                    fontSize: 15), // Set the text color
                                 decoration: InputDecoration(
                                   filled: true, // Set filled to true
                                   fillColor: Colors
@@ -307,10 +299,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                               width: 90,
                               child: Text("Device code: ",
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.042)),
+                                      color: Colors.white, fontSize: 15)),
                             ),
                             Expanded(
                               child:
@@ -320,9 +309,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                                 controller: _deviceCode,
                                 style: TextStyle(
                                     color: Colors.black,
-                                    fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.042), // Set the text color
+                                    fontSize: 15), // Set the text color
                                 decoration: InputDecoration(
                                   filled: true, // Set filled to true
                                   fillColor: Colors
@@ -356,8 +343,7 @@ class _DeviceMgtState extends State<DeviceMgt> {
                                     if (_selectedDate != null &&
                                         _deviceId.text != "" &&
                                         _deviceCode.text != "") {
-                                      final url =
-                                          'https://patientvitalsproject.000webhostapp.com/attachdevice.php';
+                                      final url = '$host/attachdevice.php';
                                       final response = await http.post(
                                         Uri.parse(url),
                                         body: {
@@ -389,7 +375,12 @@ class _DeviceMgtState extends State<DeviceMgt> {
                                               ),
                                             ],
                                           ),
-                                        );
+                                        ).then((value) => Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      DeviceMgt(user.user_id)),
+                                            ));
                                       } else {
                                         showDialog(
                                           context: context,

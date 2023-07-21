@@ -10,6 +10,7 @@ import 'screenb.dart';
 import 'package:vital_monitor/logic/models/userModel.dart';
 import 'package:vital_monitor/logic/models/userProvider.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'global.dart';
 
 // import 'package:mysql1/mysql1.dart';
 
@@ -42,10 +43,12 @@ class PatientDetails extends StatefulWidget {
 
 class _PatientDetailsState extends State<PatientDetails> {
   List<MyData> dataList = [];
+  List<MyData> dataList2 = [];
   MyData data;
   User gotuser;
   MyPatients gotpatient;
   String period = "seconds";
+  String tperiod = "lateMorning";
   _PatientDetailsState(this.data, this.gotuser, this.gotpatient);
   Timer? timer;
 
@@ -60,6 +63,7 @@ class _PatientDetailsState extends State<PatientDetails> {
   int currentIndex = 0;
 
   List<ChartData> cdata = [];
+  List<ChartData> cdata2 = [];
 
   List<charts.Series<ChartData, int>> getChartDataSeries() {
     return [
@@ -71,6 +75,50 @@ class _PatientDetailsState extends State<PatientDetails> {
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
       ),
     ];
+  }
+
+  List<charts.Series<ChartData, int>> getChartDataSeries2() {
+    return [
+      charts.Series(
+        id: 'chartData',
+        data: cdata2,
+        domainFn: (ChartData chartData, _) => chartData.x,
+        measureFn: (ChartData chartData, _) => chartData.y,
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+      ),
+    ];
+  }
+
+  // Function to sort data into different lists based on created time periods
+  Map<String, List<MyData>> sortDataByTimePeriod(List<MyData> dataList) {
+    Map<String, List<MyData>> sortedData = {
+      'Early Morning': [],
+      'Late Morning': [],
+      'Afternoon': [],
+      'Evening': [],
+      'Early Night': [],
+      'Late Night': [],
+    };
+
+    dataList.forEach((data) {
+      TimeOfDay timeOfDay =
+          TimeOfDay.fromDateTime(DateTime.parse(data.created_date));
+      if (timeOfDay.hour >= 5 && timeOfDay.hour < 9) {
+        sortedData['Early Morning']!.add(data);
+      } else if (timeOfDay.hour >= 9 && timeOfDay.hour < 12) {
+        sortedData['Late Morning']!.add(data);
+      } else if (timeOfDay.hour >= 12 && timeOfDay.hour < 15) {
+        sortedData['Afternoon']!.add(data);
+      } else if (timeOfDay.hour >= 15 && timeOfDay.hour < 19) {
+        sortedData['Evening']!.add(data);
+      } else if (timeOfDay.hour >= 19 || timeOfDay.hour < 0) {
+        sortedData['Early Night']!.add(data);
+      } else {
+        sortedData['Late Night']!.add(data);
+      }
+    });
+
+    return sortedData;
   }
 
   @override
@@ -88,45 +136,46 @@ class _PatientDetailsState extends State<PatientDetails> {
   void startTimer() async {
     timer = Timer.periodic(Duration(seconds: 1), (Timer timer) async {
       fetchData2();
-      setState(() {
-        cdata.clear();
-        for (MyData vitals in dataList) {
-          if (period == "seconds") {
-            cdata.add(ChartData(
-                DateTime.parse(vitals.created_date)
-                    .difference(DateTime.parse(
-                        dataList[dataList.length - 1].created_date))
-                    .inSeconds,
-                double.parse(vitals.getVital(vital_sign)).round()));
-          } else if (period == "minutes") {
-            cdata.add(ChartData(
-                DateTime.parse(vitals.created_date)
-                    .difference(DateTime.parse(
-                        dataList[dataList.length - 1].created_date))
-                    .inMinutes,
-                double.parse(vitals.getVital(vital_sign)).round()));
-          } else if (period == "hours") {
-            cdata.add(ChartData(
-                DateTime.parse(vitals.created_date)
-                    .difference(DateTime.parse(
-                        dataList[dataList.length - 1].created_date))
-                    .inHours,
-                double.parse(vitals.getVital(vital_sign)).round()));
-          } else if (period == "days") {
-            cdata.add(ChartData(
-                DateTime.parse(vitals.created_date)
-                    .difference(DateTime.parse(
-                        dataList[dataList.length - 1].created_date))
-                    .inDays,
-                double.parse(vitals.getVital(vital_sign)).round()));
+      if (mounted)
+        setState(() {
+          cdata.clear();
+          for (MyData vitals in dataList) {
+            if (period == "seconds") {
+              cdata.add(ChartData(
+                  DateTime.parse(vitals.created_date)
+                      .difference(DateTime.parse(
+                          dataList[dataList.length - 1].created_date))
+                      .inSeconds,
+                  double.parse(vitals.getVital(vital_sign)).round()));
+            } else if (period == "minutes") {
+              cdata.add(ChartData(
+                  DateTime.parse(vitals.created_date)
+                      .difference(DateTime.parse(
+                          dataList[dataList.length - 1].created_date))
+                      .inMinutes,
+                  double.parse(vitals.getVital(vital_sign)).round()));
+            } else if (period == "hours") {
+              cdata.add(ChartData(
+                  DateTime.parse(vitals.created_date)
+                      .difference(DateTime.parse(
+                          dataList[dataList.length - 1].created_date))
+                      .inHours,
+                  double.parse(vitals.getVital(vital_sign)).round()));
+            } else if (period == "days") {
+              cdata.add(ChartData(
+                  DateTime.parse(vitals.created_date)
+                      .difference(DateTime.parse(
+                          dataList[dataList.length - 1].created_date))
+                      .inDays,
+                  double.parse(vitals.getVital(vital_sign)).round()));
+            }
           }
-        }
-      });
+        });
     });
   }
 
   Future<List<MyData>> fetchData() async {
-    final url = 'https://patientvitalsproject.000webhostapp.com/graphapi.php';
+    final url = '$host/graphapi.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -143,14 +192,29 @@ class _PatientDetailsState extends State<PatientDetails> {
     }
   }
 
+  Future<List<MyData>> fetchData3() async {
+    final response = await http.get(Uri.parse('$host/graphapi2.php'));
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      return List<MyData>.from(jsonData.map((data) => MyData.fromJson(data)));
+    } else {
+      throw Exception('Failed to retrieve data');
+    }
+  }
+
   Future<void> fetchData2() async {
     try {
       List<MyData> fetchedData =
           await fetchData(); // Call the fetchData method that retrieves data
-      setState(() {
-        dataList = fetchedData;
-        data = dataList[0];
-      });
+      List<MyData> fetchedData2 = await fetchData3();
+      if (mounted) {
+        setState(() {
+          dataList = fetchedData;
+          dataList2 = fetchedData2;
+          data = dataList[0];
+        });
+      }
     } catch (e) {
       // Handle error cases
       print('Error: $e');
@@ -159,6 +223,78 @@ class _PatientDetailsState extends State<PatientDetails> {
 
   @override
   Widget build(BuildContext context) {
+    if (dataList.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    Map<String, List<MyData>> sortedData = sortDataByTimePeriod(dataList2);
+
+    //separate lists for each time period
+    List<MyData> earlyMorningData = sortedData['Early Morning']!;
+    List<MyData> lateMorningData = sortedData['Late Morning']!;
+    List<MyData> afternoonData = sortedData['Afternoon']!;
+    List<MyData> eveningData = sortedData['Evening']!;
+    List<MyData> earlyNightData = sortedData['Early Night']!;
+    List<MyData> lateNightData = sortedData['Late Night']!;
+
+    cdata2.clear();
+
+    if (tperiod == "earlyMorning") {
+      for (MyData vitals in earlyMorningData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    earlyMorningData[earlyMorningData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    } else if (tperiod == "lateMorning") {
+      for (MyData vitals in lateMorningData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    lateMorningData[lateMorningData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    } else if (tperiod == "afternoon") {
+      for (MyData vitals in afternoonData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    afternoonData[afternoonData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    } else if (tperiod == "evening") {
+      for (MyData vitals in eveningData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    eveningData[eveningData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    } else if (tperiod == "earlyNight") {
+      for (MyData vitals in earlyNightData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    earlyNightData[earlyNightData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    } else if (tperiod == "lateNight") {
+      for (MyData vitals in lateNightData) {
+        cdata2.add(ChartData(
+            DateTime.parse(vitals.created_date)
+                .difference(DateTime.parse(
+                    lateNightData[lateNightData.length - 1].created_date))
+                .inSeconds,
+            double.parse(vitals.getVital(vital_sign)).round()));
+      }
+    }
+
     return Scaffold(
       body: Consumer<UserProvider>(
         builder: (context, userProvider, _) {
@@ -224,9 +360,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                     Column(
                                       children: [
                                         Text(
-                                            data.blood_pressure_systolic +
+                                            dataList.first
+                                                    .blood_pressure_systolic +
                                                 "/" +
-                                                data.blood_pressure_diastolic,
+                                                dataList.first
+                                                    .blood_pressure_diastolic,
                                             style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
@@ -251,41 +389,40 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ],
                                 ),
                                 Text(
-                                    double.parse(data.blood_pressure_systolic) < 90 &&
-                                            double.parse(data.blood_pressure_diastolic) <
+                                    double.parse(dataList.first.blood_pressure_systolic) < 90 &&
+                                            double.parse(dataList.first.blood_pressure_diastolic) <
                                                 60
                                         ? "Low"
-                                        : double.parse(data.blood_pressure_systolic) < 120 ||
-                                                double.parse(data.blood_pressure_diastolic) <
+                                        : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
+                                                double.parse(dataList.first.blood_pressure_diastolic) <
                                                     80
                                             ? "Normal"
-                                            : double.parse(data.blood_pressure_systolic) < 130 &&
-                                                    double.parse(data.blood_pressure_diastolic) <
+                                            : double.parse(dataList.first.blood_pressure_systolic) < 130 &&
+                                                    double.parse(dataList.first.blood_pressure_diastolic) <
                                                         80
                                                 ? "Elevated"
-                                                : double.parse(data.blood_pressure_systolic) < 140 ||
-                                                        double.parse(data.blood_pressure_diastolic) <
+                                                : double.parse(dataList.first.blood_pressure_systolic) < 140 ||
+                                                        double.parse(dataList.first.blood_pressure_diastolic) <
                                                             90
                                                     ? "Stage 1 Hypertension"
                                                     : 'Stage 2 Hypertension',
                                     style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width *
-                                            0.047,
-                                        color: double.parse(data.blood_pressure_systolic) < 90 &&
-                                                double.parse(data.blood_pressure_diastolic) <
+                                        fontSize:
+                                            MediaQuery.of(context).size.width *
+                                                0.047,
+                                        color: double.parse(dataList.first.blood_pressure_systolic) < 90 &&
+                                                double.parse(dataList.first.blood_pressure_diastolic) <
                                                     60
                                             ? Colors.blue
-                                            : double.parse(data.blood_pressure_systolic) < 120 ||
-                                                    double.parse(data.blood_pressure_diastolic) <
+                                            : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
+                                                    double.parse(dataList.first.blood_pressure_diastolic) <
                                                         80
                                                 ? Colors.green
-                                                : double.parse(data.blood_pressure_systolic) < 130 &&
-                                                        double.parse(data.blood_pressure_diastolic) <
-                                                            80
+                                                : double.parse(dataList.first.blood_pressure_systolic) <
+                                                            130 &&
+                                                        double.parse(dataList.first.blood_pressure_diastolic) < 80
                                                     ? Colors.yellow
-                                                    : double.parse(data.blood_pressure_systolic) <
-                                                                140 ||
-                                                            double.parse(data.blood_pressure_diastolic) < 90
+                                                    : double.parse(dataList.first.blood_pressure_systolic) < 140 || double.parse(dataList.first.blood_pressure_diastolic) < 90
                                                         ? Colors.orange
                                                         : Colors.red,
                                         fontWeight: FontWeight.bold)),
@@ -324,7 +461,7 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text(data.body_temperature,
+                                        Text(dataList.first.body_temperature,
                                             style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
@@ -349,29 +486,29 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ],
                                 ),
                                 Text(
-                                    double.parse(data.body_temperature) < 35.9
+                                    double.parse(dataList.first.body_temperature) <
+                                            35.9
                                         ? 'Low'
-                                        : double.parse(data.body_temperature) <
+                                        : double.parse(dataList.first.body_temperature) <
                                                 37.2
                                             ? "Normal"
-                                            : double.parse(
-                                                        data.body_temperature) <
+                                            : double.parse(dataList.first
+                                                        .body_temperature) <
                                                     38.7
                                                 ? "Moderate Fever"
                                                 : "High Fever",
                                     style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: double.parse(
-                                                    data.body_temperature) <
+                                        fontSize: MediaQuery.of(context).size.width *
+                                            0.047,
+                                        color: double.parse(dataList
+                                                    .first.body_temperature) <
                                                 35.9
                                             ? Colors.blue
-                                            : double.parse(
-                                                        data.body_temperature) <
+                                            : double.parse(dataList.first
+                                                        .body_temperature) <
                                                     37.2
                                                 ? Colors.green
-                                                : double.parse(data
+                                                : double.parse(dataList.first
                                                             .body_temperature) <
                                                         38.7
                                                     ? Colors.orange
@@ -417,7 +554,7 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text(data.pulse_rate,
+                                        Text(dataList.first.pulse_rate,
                                             style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
@@ -442,32 +579,32 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ],
                                 ),
                                 Text(
-                                    double.parse(data.pulse_rate) < 80 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
-                                            double.parse(data.pulse_rate) < 70 &&
+                                    double.parse(dataList.first.pulse_rate) < 80 &&
+                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
+                                                    1 ||
+                                            double.parse(dataList.first.pulse_rate) < 70 &&
                                                 (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
                                                     18 ||
-                                            double.parse(data.pulse_rate) < 60 &&
-                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >=
+                                            double.parse(dataList.first.pulse_rate) < 60 &&
+                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365)
+                                                        .floor() >=
                                                     18
                                         ? "Low"
-                                        : double.parse(data.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
-                                                double.parse(data.pulse_rate) > 100 &&
+                                        : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
+                                                double.parse(dataList.first.pulse_rate) > 100 &&
                                                     (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >
                                                         1
                                             ? "High"
                                             : "Normal",
                                     style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: double.parse(data.pulse_rate) < 80 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
-                                                double.parse(data.pulse_rate) < 70 &&
-                                                    (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
-                                                        18 ||
-                                                double.parse(data.pulse_rate) < 60 &&
-                                                    (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >= 18
+                                        fontSize: MediaQuery.of(context).size.width *
+                                            0.047,
+                                        color: double.parse(dataList.first.pulse_rate) < 80 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
+                                                double.parse(dataList.first.pulse_rate) < 70 &&
+                                                    (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 18 ||
+                                                double.parse(dataList.first.pulse_rate) < 60 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >= 18
                                             ? Colors.blue
-                                            : double.parse(data.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 || double.parse(data.pulse_rate) > 100 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() > 1
+                                            : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 || double.parse(dataList.first.pulse_rate) > 100 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() > 1
                                                 ? Colors.red
                                                 : Colors.green,
                                         fontWeight: FontWeight.bold)),
@@ -506,7 +643,7 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text(data.oxygen_saturation,
+                                        Text(dataList.first.oxygen_saturation,
                                             style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
@@ -531,9 +668,12 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ],
                                 ),
                                 Text(
-                                    double.parse(data.oxygen_saturation) < 91
+                                    double.parse(dataList
+                                                .first.oxygen_saturation) <
+                                            91
                                         ? "Low"
-                                        : double.parse(data.oxygen_saturation) <
+                                        : double.parse(dataList
+                                                    .first.oxygen_saturation) <
                                                 96
                                             ? "Concerning"
                                             : "Normal",
@@ -541,11 +681,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                         fontSize:
                                             MediaQuery.of(context).size.width *
                                                 0.047,
-                                        color: double.parse(
-                                                    data.oxygen_saturation) <
+                                        color: double.parse(dataList
+                                                    .first.oxygen_saturation) <
                                                 91
                                             ? Colors.red
-                                            : double.parse(data
+                                            : double.parse(dataList.first
                                                         .oxygen_saturation) <
                                                     96
                                                 ? Colors.yellow
@@ -557,6 +697,17 @@ class _PatientDetailsState extends State<PatientDetails> {
                         ],
                       ),
                     ],
+                  ),
+                  Container(
+                    margin: EdgeInsets.fromLTRB(10, 30, 10, 0),
+                    padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                    color: Colors.white,
+                    child: Center(
+                        child: Text(
+                      "Analytics per unit Time",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    )),
                   ),
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -682,9 +833,366 @@ class _PatientDetailsState extends State<PatientDetails> {
                           ),
                         ),
                         SizedBox(
+                            height: 400,
+                            child: charts.LineChart(
+                              getChartDataSeries(),
+                              animate: true,
+                              domainAxis: charts.NumericAxisSpec(
+                                tickProviderSpec:
+                                    charts.BasicNumericTickProviderSpec(
+                                  desiredTickCount: 5,
+                                ),
+                                renderSpec: charts.GridlineRendererSpec(
+                                  labelStyle: charts.TextStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                    fontSize: 12,
+                                  ),
+                                  lineStyle: charts.LineStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                  ),
+                                  axisLineStyle: charts.LineStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                  ),
+                                ),
+                                // Custom tick formatter to divide the displayed values by 60,000
+                                tickFormatterSpec:
+                                    charts.BasicNumericTickFormatterSpec(
+                                  (num? value) => (value! < 60)
+                                      ? (value.round().toString() + " seconds")
+                                      : (value < 3600)
+                                          ? (value / 60).round().toString() +
+                                              " minutes"
+                                          : (value < 86400)
+                                              ? (value / 3600)
+                                                      .round()
+                                                      .toString() +
+                                                  " hours"
+                                              : (value / (3600 * 24))
+                                                      .round()
+                                                      .toString() +
+                                                  " days", // Divide by 60,000 and display with 1 decimal place
+                                ),
+                              ),
+                              primaryMeasureAxis: charts.NumericAxisSpec(
+                                tickProviderSpec:
+                                    charts.BasicNumericTickProviderSpec(
+                                  desiredTickCount: 5,
+                                ),
+                                renderSpec: charts.GridlineRendererSpec(
+                                  labelStyle: charts.TextStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                    fontSize: 12,
+                                  ),
+                                  lineStyle: charts.LineStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                  ),
+                                  axisLineStyle: charts.LineStyleSpec(
+                                    color: charts.MaterialPalette.black,
+                                  ),
+                                ),
+                              ),
+                            )),
+                        Center(
+                          child: Text(
+                            "Time",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.fromLTRB(10, 30, 10, 0),
+                    padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                    color: Colors.white,
+                    child: Center(
+                        child: Text(
+                      "Analytics Per Time Period",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    )),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Center(
+                          child: SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      currentIndex = index;
+                                      vital_sign = items[index];
+
+                                      cdata2.clear();
+
+                                      if (tperiod == "earlyMorning") {
+                                        for (MyData vitals
+                                            in earlyMorningData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      earlyMorningData[
+                                                              earlyMorningData
+                                                                      .length -
+                                                                  1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      } else if (tperiod == "lateMorning") {
+                                        for (MyData vitals in lateMorningData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      lateMorningData[
+                                                              lateMorningData
+                                                                      .length -
+                                                                  1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      } else if (tperiod == "afternoon") {
+                                        for (MyData vitals in afternoonData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      afternoonData[
+                                                              afternoonData
+                                                                      .length -
+                                                                  1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      } else if (tperiod == "evening") {
+                                        for (MyData vitals in eveningData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      eveningData[eveningData
+                                                                  .length -
+                                                              1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      } else if (tperiod == "earlyNight") {
+                                        for (MyData vitals in earlyNightData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      earlyNightData[
+                                                              earlyNightData
+                                                                      .length -
+                                                                  1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      } else if (tperiod == "lateNight") {
+                                        for (MyData vitals in lateNightData) {
+                                          cdata2.add(ChartData(
+                                              DateTime.parse(
+                                                      vitals.created_date)
+                                                  .difference(DateTime.parse(
+                                                      lateNightData[
+                                                              lateNightData
+                                                                      .length -
+                                                                  1]
+                                                          .created_date))
+                                                  .inSeconds,
+                                              double.parse(vitals
+                                                      .getVital(vital_sign))
+                                                  .round()));
+                                        }
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: index == currentIndex
+                                          ? Color.fromRGBO(0, 33, 71, 1)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(
+                                        color: index == currentIndex
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: PopupMenuButton<String>(
+                            icon: Icon(Icons.more_vert),
+                            onSelected: (value) {
+                              setState(() {
+                                tperiod = value;
+                                cdata2.clear();
+
+                                if (tperiod == "earlyMorning") {
+                                  for (MyData vitals in earlyMorningData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                earlyMorningData[
+                                                        earlyMorningData
+                                                                .length -
+                                                            1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                } else if (tperiod == "lateMorning") {
+                                  for (MyData vitals in lateMorningData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                lateMorningData[
+                                                        lateMorningData.length -
+                                                            1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                } else if (tperiod == "afternoon") {
+                                  for (MyData vitals in afternoonData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                afternoonData[
+                                                        afternoonData.length -
+                                                            1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                } else if (tperiod == "evening") {
+                                  for (MyData vitals in eveningData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                eveningData[
+                                                        eveningData.length - 1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                } else if (tperiod == "earlyNight") {
+                                  for (MyData vitals in earlyNightData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                earlyNightData[
+                                                        earlyNightData.length -
+                                                            1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                } else if (tperiod == "lateNight") {
+                                  for (MyData vitals in lateNightData) {
+                                    cdata2.add(ChartData(
+                                        DateTime.parse(vitals.created_date)
+                                            .difference(DateTime.parse(
+                                                lateNightData[
+                                                        lateNightData.length -
+                                                            1]
+                                                    .created_date))
+                                            .inSeconds,
+                                        double.parse(
+                                                vitals.getVital(vital_sign))
+                                            .round()));
+                                  }
+                                }
+                              });
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(
+                                value: 'earlyMorning',
+                                child: Text('Early Morning 5:00 - 9:00'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'lateMorning',
+                                child: Text('Late Morning 9:00 - 12:00'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'afternoon',
+                                child: Text('Afternoon 12:00 - 15:00'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'evening',
+                                child: Text('Evening 15:00 - 19:00'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'earlyNight',
+                                child: Text('Early Night 19:00 - 00:00'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'lateNight',
+                                child: Text('Late Night 00:00 - 5:00'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
                           height: 400,
                           child: charts.LineChart(
-                            getChartDataSeries(),
+                            getChartDataSeries2(),
                             animate: true,
                             domainAxis: charts.NumericAxisSpec(
                               tickProviderSpec:

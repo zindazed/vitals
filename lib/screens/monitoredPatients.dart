@@ -9,6 +9,7 @@ import 'package:vital_monitor/screens/patientDetails.dart';
 import 'screenb.dart';
 import 'package:vital_monitor/logic/models/userModel.dart';
 import 'package:vital_monitor/logic/models/userProvider.dart';
+import 'global.dart';
 // import 'package:mysql1/mysql1.dart';
 
 // import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
   List<MyData> dataList = [];
   List<MyPatients> patientsList = [];
   List<User> usersList = [];
-  late Timer _timer;
+  late Timer? _timer;
 
   final TextEditingController _deviceId = TextEditingController();
   final TextEditingController _deviceCode = TextEditingController();
@@ -36,14 +37,17 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
   @override
   void initState() {
     super.initState();
-    fetchData2();
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    fetchData3().then((value) => startTimer());
+  }
+
+  void startTimer() async {
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) async {
       fetchData2();
-    }); // Call the fetchData method to retrieve the data
+    });
   }
 
   Future<List<MyData>> fetchData() async {
-    final url = 'https://patientvitalsproject.000webhostapp.com//api.php';
+    final url = '$host/api.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -60,8 +64,7 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
   }
 
   Future<List<MyPatients>> fetchPatientsData() async {
-    final response = await http.get(Uri.parse(
-        'https://patientvitalsproject.000webhostapp.com//monitoredPatients.php'));
+    final response = await http.get(Uri.parse('$host/monitoredPatients.php'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -73,8 +76,7 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
   }
 
   Future<List<User>> fetchUsersData() async {
-    final response = await http.get(
-        Uri.parse('https://patientvitalsproject.000webhostapp.com//users.php'));
+    final response = await http.get(Uri.parse('$host/users.php'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -88,13 +90,29 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
     try {
       List<MyData> fetchedData =
           await fetchData(); // Call the fetchData method that retrieves data
+      if (mounted) {
+        setState(() {
+          dataList = fetchedData;
+        });
+      }
+    } catch (e) {
+      // Handle error cases
+      print('Error: $e');
+    }
+  }
+
+  Future<void> fetchData3() async {
+    try {
+      List<MyData> fetchedData = await fetchData();
       List<MyPatients> fetchedPatientsData = await fetchPatientsData();
       List<User> fetchedUsersData = await fetchUsersData();
-      setState(() {
-        dataList = fetchedData;
-        patientsList = fetchedPatientsData;
-        usersList = fetchedUsersData;
-      });
+      if (mounted) {
+        setState(() {
+          dataList = fetchedData;
+          patientsList = fetchedPatientsData;
+          usersList = fetchedUsersData;
+        });
+      }
     } catch (e) {
       // Handle error cases
       print('Error: $e');
@@ -103,7 +121,7 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -157,333 +175,306 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
                         // Center is a layout widget. It takes a single child and positions it
                         // in the middle of the parent.
 
-                        child: SingleChildScrollView(
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: dataList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              MyData data = dataList[index];
-                              return OutlinedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromRGBO(
-                                      0,
-                                      33,
-                                      71,
-                                      1), // Set the button background color to green
-                                  side: BorderSide.none,
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => PatientDetails(
-                                              data: data,
-                                              user: usersList.firstWhere(
-                                                (user) =>
-                                                    user.user_id ==
-                                                    patientsList
-                                                        .firstWhere(
-                                                          (patient) =>
-                                                              patient
-                                                                  .device_id ==
-                                                              data.device_id,
-                                                        )
-                                                        .patient_id,
-                                              ),
-                                              patient: patientsList.firstWhere(
-                                                (patient) =>
-                                                    patient.device_id ==
-                                                    data.device_id,
-                                              ),
-                                            )),
-                                  );
-                                },
-                                child: Container(
-                                  margin:
-                                      const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    color: const Color.fromRGBO(
-                                        255, 255, 255, 0.2),
-                                    border: Border.all(
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                          usersList
-                                              .firstWhere(
-                                                (user) =>
-                                                    user.user_id ==
-                                                    patientsList
-                                                        .firstWhere(
-                                                          (patient) =>
-                                                              patient
-                                                                  .device_id ==
-                                                              data.device_id,
-                                                        )
-                                                        .patient_id,
-                                              )
-                                              .username!,
-                                          style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.055,
-                                              color: Colors.white)),
-                                      SizedBox(
-                                        height: 5,
+                        child: (dataList.isEmpty)
+                            ? Center(child: CircularProgressIndicator())
+                            : SingleChildScrollView(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: dataList.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    MyData data = dataList[index];
+                                    return OutlinedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromRGBO(
+                                            0,
+                                            33,
+                                            71,
+                                            1), // Set the button background color to green
+                                        side: BorderSide.none,
                                       ),
-                                      Row(
-                                        // Column is also a layout widget. It takes a list of children and
-                                        // arranges them vertically. By default, it sizes itself to fit its
-                                        // children horizontally, and tries to be as tall as its parent.
-                                        //
-                                        // Invoke "debug painting" (press "p" in the console, choose the
-                                        // "Toggle Debug Paint" action from the Flutter Inspector in Android
-                                        // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-                                        // to see the wireframe for each widget.
-                                        //
-                                        // Column has various properties to control how it sizes itself and
-                                        // how it positions its children. Here we use mainAxisAlignment to
-                                        // center the children vertically; the main axis here is the vertical
-                                        // axis because Columns are vertical (the cross axis would be
-                                        // horizontal).
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: <Widget>[
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    'BP:',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.042,
-                                                      color: Colors.white,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PatientDetails(
+                                                    data: data,
+                                                    user: usersList.firstWhere(
+                                                      (user) =>
+                                                          user.user_id ==
+                                                          patientsList
+                                                              .firstWhere(
+                                                                (patient) =>
+                                                                    patient
+                                                                        .device_id ==
+                                                                    data.device_id,
+                                                              )
+                                                              .patient_id,
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    "${data.blood_pressure_diastolic} ${data.blood_pressure_systolic}",
-                                                    style: TextStyle(
-                                                        fontSize: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            0.055,
-                                                        color: double.parse(data.blood_pressure_systolic) <
-                                                                    90 &&
-                                                                double.parse(data.blood_pressure_diastolic) <
-                                                                    60
-                                                            ? Colors.blue
-                                                            : double.parse(data.blood_pressure_systolic) <
-                                                                        120 ||
-                                                                    double.parse(data.blood_pressure_diastolic) <
-                                                                        80
-                                                                ? Colors.green
-                                                                : double.parse(data.blood_pressure_systolic) <
-                                                                            130 &&
-                                                                        double.parse(data.blood_pressure_diastolic) <
-                                                                            80
-                                                                    ? Colors
-                                                                        .yellow
-                                                                    : double.parse(data.blood_pressure_systolic) < 140 ||
-                                                                            double.parse(data.blood_pressure_diastolic) < 90
-                                                                        ? Colors.orange
-                                                                        : Colors.red),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    'PR:',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.042,
-                                                      color: Colors.white,
+                                                    patient:
+                                                        patientsList.firstWhere(
+                                                      (patient) =>
+                                                          patient.device_id ==
+                                                          data.device_id,
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    data.pulse_rate,
-                                                    style: TextStyle(
-                                                        fontSize: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            0.055,
-                                                        color: double.parse(data
-                                                                            .pulse_rate) <
-                                                                        80 &&
-                                                                    (DateTime.parse(patientsList
-                                                                                        .firstWhere(
-                                                                                          (patient) => patient.device_id == data.device_id,
-                                                                                        )
-                                                                                        .dob)
-                                                                                    .difference(DateTime.now())
-                                                                                    .inDays /
-                                                                                365)
-                                                                            .floor() <
-                                                                        1 ||
-                                                                double.parse(data.pulse_rate) < 70 &&
-                                                                    (DateTime.parse(patientsList
-                                                                                        .firstWhere(
-                                                                                          (patient) => patient.device_id == data.device_id,
-                                                                                        )
-                                                                                        .dob)
-                                                                                    .difference(DateTime.now())
-                                                                                    .inDays /
-                                                                                365)
-                                                                            .floor() <
-                                                                        18 ||
-                                                                double.parse(data.pulse_rate) < 60 &&
-                                                                    (DateTime.parse(patientsList
-                                                                                        .firstWhere(
-                                                                                          (patient) => patient.device_id == data.device_id,
-                                                                                        )
-                                                                                        .dob)
-                                                                                    .difference(DateTime.now())
-                                                                                    .inDays /
-                                                                                365)
-                                                                            .floor() >=
-                                                                        18
-                                                            ? Colors.blue
-                                                            : double.parse(data.pulse_rate) > 160 &&
-                                                                        (DateTime.parse(patientsList
-                                                                                            .firstWhere(
-                                                                                              (patient) => patient.device_id == data.device_id,
-                                                                                            )
-                                                                                            .dob)
-                                                                                        .difference(DateTime.now())
-                                                                                        .inDays /
-                                                                                    365)
-                                                                                .floor() <
-                                                                            1 ||
-                                                                    double.parse(data.pulse_rate) > 100 &&
-                                                                        (DateTime.parse(patientsList
-                                                                                            .firstWhere(
-                                                                                              (patient) => patient.device_id == data.device_id,
-                                                                                            )
-                                                                                            .dob)
-                                                                                        .difference(DateTime.now())
-                                                                                        .inDays /
-                                                                                    365)
-                                                                                .floor() >
-                                                                            1
-                                                                ? Colors.red
-                                                                : Colors.green),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
+                                                  )),
+                                        );
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.fromLTRB(
+                                            10, 5, 10, 5),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(15.0),
+                                          color: const Color.fromRGBO(
+                                              255, 255, 255, 0.2),
+                                          border: Border.all(
+                                            width: 2.0,
                                           ),
-                                          const SizedBox(
-                                            width: 5,
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    'O2:',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.042,
-                                                      color: Colors.white,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                                usersList
+                                                    .firstWhere(
+                                                      (user) =>
+                                                          user.user_id ==
+                                                          patientsList
+                                                              .firstWhere(
+                                                                (patient) =>
+                                                                    patient
+                                                                        .device_id ==
+                                                                    data.device_id,
+                                                              )
+                                                              .patient_id,
+                                                    )
+                                                    .username!,
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: Colors.white)),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Row(
+                                              // Column is also a layout widget. It takes a list of children and
+                                              // arranges them vertically. By default, it sizes itself to fit its
+                                              // children horizontally, and tries to be as tall as its parent.
+                                              //
+                                              // Invoke "debug painting" (press "p" in the console, choose the
+                                              // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                                              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                                              // to see the wireframe for each widget.
+                                              //
+                                              // Column has various properties to control how it sizes itself and
+                                              // how it positions its children. Here we use mainAxisAlignment to
+                                              // center the children vertically; the main axis here is the vertical
+                                              // axis because Columns are vertical (the cross axis would be
+                                              // horizontal).
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: <Widget>[
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'BP:',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          "${data.blood_pressure_systolic} ${data.blood_pressure_diastolic}",
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              color: double.parse(data
+                                                                              .blood_pressure_systolic) <
+                                                                          90 &&
+                                                                      double.parse(data
+                                                                              .blood_pressure_diastolic) <
+                                                                          60
+                                                                  ? Colors.blue
+                                                                  : double.parse(data.blood_pressure_systolic) <
+                                                                              120 ||
+                                                                          double.parse(data.blood_pressure_diastolic) <
+                                                                              80
+                                                                      ? Colors
+                                                                          .green
+                                                                      : double.parse(data.blood_pressure_systolic) < 130 &&
+                                                                              double.parse(data.blood_pressure_diastolic) <
+                                                                                  80
+                                                                          ? Colors
+                                                                              .yellow
+                                                                          : double.parse(data.blood_pressure_systolic) < 140 || double.parse(data.blood_pressure_diastolic) < 90
+                                                                              ? Colors.orange
+                                                                              : Colors.red),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    data.oxygen_saturation,
-                                                    style: TextStyle(
-                                                        fontSize: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            0.055,
-                                                        color: double.parse(data
-                                                                    .oxygen_saturation) <
-                                                                91
-                                                            ? Colors.red
-                                                            : double.parse(data
-                                                                        .oxygen_saturation) <
-                                                                    96
-                                                                ? Colors.yellow
-                                                                : Colors.green),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    'T:',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.042,
-                                                      color: Colors.white,
+                                                    const SizedBox(
+                                                      height: 5,
                                                     ),
-                                                  ),
-                                                  Text(
-                                                    data.body_temperature,
-                                                    style: TextStyle(
-                                                        fontSize: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            0.055,
-                                                        color: double.parse(data
-                                                                    .body_temperature) <
-                                                                35.9
-                                                            ? Colors.blue
-                                                            : double.parse(data
-                                                                        .body_temperature) <
-                                                                    37.2
-                                                                ? Colors.green
-                                                                : double.parse(data
-                                                                            .body_temperature) <
-                                                                        38.7
-                                                                    ? Colors
-                                                                        .orange
-                                                                    : Colors
-                                                                        .red),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'PR:',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          data.pulse_rate,
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              color: double.parse(data.pulse_rate) <
+                                                                              80 &&
+                                                                          (DateTime.parse(patientsList
+                                                                                              .firstWhere(
+                                                                                                (patient) => patient.device_id == data.device_id,
+                                                                                              )
+                                                                                              .dob)
+                                                                                          .difference(DateTime.now())
+                                                                                          .inDays /
+                                                                                      365)
+                                                                                  .floor() <
+                                                                              1 ||
+                                                                      double.parse(data.pulse_rate) < 70 &&
+                                                                          (DateTime.parse(patientsList
+                                                                                              .firstWhere(
+                                                                                                (patient) => patient.device_id == data.device_id,
+                                                                                              )
+                                                                                              .dob)
+                                                                                          .difference(DateTime.now())
+                                                                                          .inDays /
+                                                                                      365)
+                                                                                  .floor() <
+                                                                              18 ||
+                                                                      double.parse(data.pulse_rate) < 60 &&
+                                                                          (DateTime.parse(patientsList
+                                                                                              .firstWhere(
+                                                                                                (patient) => patient.device_id == data.device_id,
+                                                                                              )
+                                                                                              .dob)
+                                                                                          .difference(DateTime.now())
+                                                                                          .inDays /
+                                                                                      365)
+                                                                                  .floor() >=
+                                                                              18
+                                                                  ? Colors.blue
+                                                                  : double.parse(data.pulse_rate) > 160 &&
+                                                                              (DateTime.parse(patientsList
+                                                                                                  .firstWhere(
+                                                                                                    (patient) => patient.device_id == data.device_id,
+                                                                                                  )
+                                                                                                  .dob)
+                                                                                              .difference(DateTime.now())
+                                                                                              .inDays /
+                                                                                          365)
+                                                                                      .floor() <
+                                                                                  1 ||
+                                                                          double.parse(data.pulse_rate) > 100 &&
+                                                                              (DateTime.parse(patientsList
+                                                                                                  .firstWhere(
+                                                                                                    (patient) => patient.device_id == data.device_id,
+                                                                                                  )
+                                                                                                  .dob)
+                                                                                              .difference(DateTime.now())
+                                                                                              .inDays /
+                                                                                          365)
+                                                                                      .floor() >
+                                                                                  1
+                                                                      ? Colors.red
+                                                                      : Colors.green),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'O2:',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          data.oxygen_saturation,
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              color: double.parse(data
+                                                                          .oxygen_saturation) <
+                                                                      91
+                                                                  ? Colors.red
+                                                                  : double.parse(data
+                                                                              .oxygen_saturation) <
+                                                                          96
+                                                                      ? Colors
+                                                                          .yellow
+                                                                      : Colors
+                                                                          .green),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 5,
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        Text(
+                                                          'T:',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          data.body_temperature,
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              color: double.parse(data
+                                                                          .body_temperature) <
+                                                                      35.9
+                                                                  ? Colors.blue
+                                                                  : double.parse(data
+                                                                              .body_temperature) <
+                                                                          37.2
+                                                                      ? Colors
+                                                                          .green
+                                                                      : double.parse(data.body_temperature) <
+                                                                              38.7
+                                                                          ? Colors
+                                                                              .orange
+                                                                          : Colors
+                                                                              .red),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
-                        ),
+                              ),
                       ),
                     ),
                     Positioned(
@@ -596,8 +587,7 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
                                   onPressed: () async {
                                     if (_deviceId.text != "" &&
                                         _deviceCode.text != "") {
-                                      final url =
-                                          'https://patientvitalsproject.000webhostapp.com/attachdevice.php';
+                                      final url = '$host/attachdevice.php';
                                       final response = await http.post(
                                         Uri.parse(url),
                                         body: {

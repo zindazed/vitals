@@ -11,6 +11,7 @@ import 'package:vital_monitor/screens/monitoredPatients.dart';
 import 'screenb.dart';
 import 'package:vital_monitor/logic/models/userModel.dart';
 import 'package:vital_monitor/logic/models/userProvider.dart';
+import 'global.dart';
 // import 'package:mysql1/mysql1.dart';
 
 // import 'package:flutter/material.dart';
@@ -49,46 +50,13 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  List<MyData> dataList = [];
-  late Timer _timer;
-
   @override
   void initState() {
     super.initState();
-    fetchData2();
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      fetchData2();
-    }); // Call the fetchData method to retrieve the data
-  }
-
-  Future<List<MyData>> fetchData() async {
-    final response = await http.get(
-        Uri.parse('https://patientvitalsproject.000webhostapp.com//api.php'));
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      return List<MyData>.from(jsonData.map((data) => MyData.fromJson(data)));
-    } else {
-      throw Exception('Failed to retrieve data');
-    }
-  }
-
-  Future<void> fetchData2() async {
-    try {
-      List<MyData> fetchedData =
-          await fetchData(); // Call the fetchData method that retrieves data
-      setState(() {
-        dataList = fetchedData;
-      });
-    } catch (e) {
-      // Handle error cases
-      print('Error: $e');
-    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 
@@ -169,11 +137,7 @@ class _MainMenuState extends State<MainMenu> {
                                         "Your Caretakers",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            fontSize: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.055,
-                                            color: Colors.white),
+                                            fontSize: 20, color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -215,11 +179,7 @@ class _MainMenuState extends State<MainMenu> {
                                         "Your Patients",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            fontSize: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.055,
-                                            color: Colors.white),
+                                            fontSize: 20, color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -261,11 +221,7 @@ class _MainMenuState extends State<MainMenu> {
                                         "Your Device",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            fontSize: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.055,
-                                            color: Colors.white),
+                                            fontSize: 20, color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -308,10 +264,7 @@ class _MainMenuState extends State<MainMenu> {
                                         "Logout",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            fontSize: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.055,
+                                            fontSize: 20,
                                             color: const Color.fromRGBO(
                                                 0, 33, 71, 1)),
                                       ),

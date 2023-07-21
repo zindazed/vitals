@@ -14,6 +14,7 @@ import 'package:vital_monitor/screens/mainMenu.dart';
 import 'package:vital_monitor/screens/monitoredPatients.dart';
 import 'package:vital_monitor/screens/screenb.dart';
 import 'logic/models/userProvider.dart';
+import 'screens/global.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,6 +31,8 @@ class MyApp extends StatelessWidget {
         ));
   }
 }
+
+bool isLoading = false;
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -201,62 +204,95 @@ class _SignUpPageState extends State<SignUpPage> {
                           side: BorderSide.none,
                         ),
                         onPressed: () async {
-                          if (_passwordsMatch) {
-                            if (_usernameController.text != "" &&
-                                _passwordController.text != "") {
-                              final url =
-                                  'https://patientvitalsproject.000webhostapp.com/api2.php';
-                              final response = await http.post(
-                                Uri.parse(url),
-                                body: {
-                                  'signup': 'true',
-                                  'username': _usernameController.text,
-                                  'password': _passwordController.text,
-                                },
-                              );
-
-                              final data = jsonDecode(response.body);
-                              final success = data['success'] as bool;
-                              final message = data['message'] as String;
-
-                              if (success) {
-                                //Access the UserProvider instance
-                                UserProvider userProvider =
-                                    Provider.of<UserProvider>(context,
-                                        listen: false);
-
-                                //set the logged-in user in the provider
-                                userProvider.setUser(User(
-                                    data['id'].toString(),
-                                    _usernameController.text,
-                                    _passwordController.text));
-
-                                //Navigate to main menu
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MainMenu()),
+                          try {
+                            if (_passwordsMatch) {
+                              if (_usernameController.text != "" &&
+                                  _passwordController.text != "") {
+                                setState(() {
+                                  isLoading = true; // Start loading
+                                });
+                                final url = '$host/api2.php';
+                                final response = await http.post(
+                                  Uri.parse(url),
+                                  body: {
+                                    'signup': 'true',
+                                    'username': _usernameController.text,
+                                    'password': _passwordController.text,
+                                  },
                                 );
-                                // showDialog(
-                                //   context: context,
-                                //   builder: (context) => AlertDialog(
-                                //     title: Text('Success'),
-                                //     content: Text(message),
-                                //     actions: [
-                                //       TextButton(
-                                //         onPressed: () =>
-                                //             Navigator.of(context).pop(),
-                                //         child: Text('OK'),
-                                //       ),
-                                //     ],
-                                //   ),
-                                // );
+
+                                final data = jsonDecode(response.body);
+                                final success = data['success'] as bool;
+                                final message = data['message'] as String;
+
+                                if (success) {
+                                  //Access the UserProvider instance
+                                  UserProvider userProvider =
+                                      Provider.of<UserProvider>(context,
+                                          listen: false);
+
+                                  //set the logged-in user in the provider
+                                  userProvider.setUser(User(
+                                      data['id'].toString(),
+                                      _usernameController.text,
+                                      _passwordController.text));
+
+                                  _usernameController.text = "";
+                                  _passwordController.text = "";
+                                  _confirmPasswordController.text = "";
+
+                                  setState(() {
+                                    isLoading = false; // Start loading
+                                  });
+
+                                  //Navigate to main menu
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MainMenu()),
+                                  );
+                                  // showDialog(
+                                  //   context: context,
+                                  //   builder: (context) => AlertDialog(
+                                  //     title: Text('Success'),
+                                  //     content: Text(message),
+                                  //     actions: [
+                                  //       TextButton(
+                                  //         onPressed: () =>
+                                  //             Navigator.of(context).pop(),
+                                  //         child: Text('OK'),
+                                  //       ),
+                                  //     ],
+                                  //   ),
+                                  // );
+                                } else {
+                                  setState(() {
+                                    isLoading = false; // Start loading
+                                  });
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Error'),
+                                      content: Text(message),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
                               } else {
+                                setState(() {
+                                  isLoading = false; // Start loading
+                                });
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: Text('Error'),
-                                    content: Text(message),
+                                    content: Text("Fill the empty fields"),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
@@ -268,39 +304,48 @@ class _SignUpPageState extends State<SignUpPage> {
                                 );
                               }
                             } else {
+                              setState(() {
+                                isLoading = false; // Start loading
+                              });
+                              // Passwords do not match, display an error message
                               showDialog(
                                 context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Error'),
-                                  content: Text("Fill the empty fields"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Error'),
+                                    content: Text('Passwords do not match.'),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('OK'),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
                             }
-                          } else {
-                            // Passwords do not match, display an error message
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false; // Start loading
+                            });
+                            // Handle error cases
+                            print('Error: $e');
                             showDialog(
                               context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Error'),
-                                  content: Text('Passwords do not match.'),
-                                  actions: [
-                                    TextButton(
-                                      child: Text('OK'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
+                              builder: (context) => AlertDialog(
+                                title: Text('Error'),
+                                content: Text(
+                                    'An error occurred, please try again.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
                             );
                           }
                         },
@@ -311,12 +356,14 @@ class _SignUpPageState extends State<SignUpPage> {
                               borderRadius: BorderRadius.circular(15.0),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: const Text(
-                              "Sign Up",
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            )),
+                            child: isLoading
+                                ? CircularProgressIndicator()
+                                : const Text(
+                                    "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  )),
                       ),
                       TextButton(
                         onPressed: () {
@@ -349,7 +396,12 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
 
   final TextEditingController _passwordController = TextEditingController();
@@ -460,63 +512,92 @@ class LoginPage extends StatelessWidget {
                           side: BorderSide.none,
                         ),
                         onPressed: () async {
-                          if (_usernameController.text != "" &&
-                              _passwordController.text != "") {
-                            final url =
-                                'https://patientvitalsproject.000webhostapp.com/api2.php';
-                            final response = await http.post(
-                              Uri.parse(url),
-                              body: {
-                                'login': 'true',
-                                'username': _usernameController.text,
-                                'password': _passwordController.text,
-                              },
-                            );
-
-                            final data = jsonDecode(response.body);
-                            final success = data['success'] as bool;
-                            final message = data['message'] as String;
-
-                            if (success) {
-                              //Access the UserProvider instance
-                              UserProvider userProvider =
-                                  Provider.of<UserProvider>(context,
-                                      listen: false);
-
-                              //set the logged-in user in the provider
-                              userProvider.setUser(User(
-                                  data['id'].toString(),
-                                  _usernameController.text,
-                                  _passwordController.text));
-
-                              _usernameController.text = "";
-                              _passwordController.text = "";
-                              //Navigate to main menu
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MainMenu()),
+                          try {
+                            if (_usernameController.text != "" &&
+                                _passwordController.text != "") {
+                              setState(() {
+                                isLoading = true; // Start loading
+                              });
+                              final url = '$host/api2.php';
+                              final response = await http.post(
+                                Uri.parse(url),
+                                body: {
+                                  'login': 'true',
+                                  'username': _usernameController.text,
+                                  'password': _passwordController.text,
+                                },
                               );
-                              // showDialog(
-                              //   context: context,
-                              //   builder: (context) => AlertDialog(
-                              //     title: Text('Success'),
-                              //     content: Text(message),
-                              //     actions: [
-                              //       TextButton(
-                              //         onPressed: () =>
-                              //             Navigator.of(context).pop(),
-                              //         child: Text('OK'),
-                              //       ),
-                              //     ],
-                              //   ),
-                              // );
+
+                              final data = jsonDecode(response.body);
+                              final success = data['success'] as bool;
+                              final message = data['message'] as String;
+
+                              if (success) {
+                                //Access the UserProvider instance
+                                UserProvider userProvider =
+                                    Provider.of<UserProvider>(context,
+                                        listen: false);
+
+                                //set the logged-in user in the provider
+                                userProvider.setUser(User(
+                                    data['id'].toString(),
+                                    _usernameController.text,
+                                    _passwordController.text));
+
+                                _usernameController.text = "";
+                                _passwordController.text = "";
+
+                                setState(() {
+                                  isLoading = false; // Start loading
+                                });
+                                //Navigate to main menu
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => MainMenu()),
+                                );
+                                // showDialog(
+                                //   context: context,
+                                //   builder: (context) => AlertDialog(
+                                //     title: Text('Success'),
+                                //     content: Text(message),
+                                //     actions: [
+                                //       TextButton(
+                                //         onPressed: () =>
+                                //             Navigator.of(context).pop(),
+                                //         child: Text('OK'),
+                                //       ),
+                                //     ],
+                                //   ),
+                                // );
+                              } else {
+                                setState(() {
+                                  isLoading = false; // Start loading
+                                });
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Error'),
+                                    content: Text(message),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                             } else {
+                              setState(() {
+                                isLoading = false; // Start loading
+                              });
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text('Error'),
-                                  content: Text(message),
+                                  content: Text("Fill the empty fields"),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
@@ -527,12 +608,18 @@ class LoginPage extends StatelessWidget {
                                 ),
                               );
                             }
-                          } else {
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false; // Start loading
+                            });
+                            // Handle error cases
+                            print('Error: $e');
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: Text('Error'),
-                                content: Text("Fill the empty fields"),
+                                content: Text(
+                                    'An error occurred, please try again.'),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
@@ -551,12 +638,14 @@ class LoginPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(15.0),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: const Text(
-                              "Login",
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            )),
+                            child: isLoading
+                                ? CircularProgressIndicator()
+                                : const Text(
+                                    "Login",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  )),
                       ),
                       TextButton(
                         onPressed: () {

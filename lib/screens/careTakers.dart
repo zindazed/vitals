@@ -14,6 +14,7 @@ import 'package:vital_monitor/logic/models/userProvider.dart';
 // import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'global.dart';
 
 class CareTakers extends StatefulWidget {
   String? userId;
@@ -29,20 +30,17 @@ class _CareTakersState extends State<CareTakers> {
   List<MyPatients> patientsList = [];
   List<MyCareTakers> caretakersList = [];
   List<User> usersList = [];
-  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
+    // Timer(const Duration(seconds: 3), () {
     fetchData2();
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      fetchData2();
-      print(patientsList);
-    }); // Call the fetchData method to retrieve the data
+    // }); // Call the fetchData method to retrieve the data
   }
 
   Future<List<MyPatients>> fetchdevice() async {
-    final url = 'https://patientvitalsproject.000webhostapp.com//device.php';
+    final url = '$host/device.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -60,8 +58,7 @@ class _CareTakersState extends State<CareTakers> {
   }
 
   Future<List<MyCareTakers>> fetchData() async {
-    final url =
-        'https://patientvitalsproject.000webhostapp.com//caretakers.php';
+    final url = '$host/caretakers.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -79,8 +76,7 @@ class _CareTakersState extends State<CareTakers> {
   }
 
   Future<List<User>> fetchUsersData() async {
-    final response = await http.get(Uri.parse(
-        'https://patientvitalsproject.000webhostapp.com//userscaretakers.php'));
+    final response = await http.get(Uri.parse('$host/userscaretakers.php'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -109,7 +105,6 @@ class _CareTakersState extends State<CareTakers> {
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 
@@ -158,226 +153,219 @@ class _CareTakersState extends State<CareTakers> {
                           width: 2.0,
                         ),
                       ),
-                      child: Center(
-                        // Center is a layout widget. It takes a single child and positions it
-                        // in the middle of the parent.
+                      child: (caretakersList.isEmpty)
+                          ? Center(child: CircularProgressIndicator())
+                          : Center(
+                              // Center is a layout widget. It takes a single child and positions it
+                              // in the middle of the parent.
 
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: caretakersList.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            MyCareTakers data = caretakersList[index];
-                            return OutlinedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromRGBO(0, 33, 71,
-                                    1), // Set the button background color to green
-                                side: BorderSide.none,
-                              ),
-                              child: Container(
-                                margin:
-                                    const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color:
-                                      const Color.fromRGBO(255, 255, 255, 0.2),
-                                  border: Border.all(
-                                    width: 2.0,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(""),
-                                        Text(
-                                            usersList
-                                                .firstWhere((thisUser) =>
-                                                    thisUser.user_id ==
-                                                    data.caretakerId)
-                                                .username!,
-                                            style: TextStyle(
-                                                fontSize: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.047,
-                                                color: Colors.white)),
-                                        (data.caretakerId == user.user_id)
-                                            ? Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          15.0),
-                                                ),
-                                                child: IconButton(
-                                                  iconSize:
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          0.055,
-                                                  icon: Icon(
-                                                    Icons.close_sharp,
-                                                    color: Color.fromRGBO(
-                                                        0, 33, 71, 1),
-                                                    size: MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.08,
-                                                  ),
-                                                  onPressed: () {
-                                                    // Define your custom action here
-                                                    print('Close pressed!');
-                                                  },
-                                                ),
-                                              )
-                                            : Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          15.0),
-                                                ),
-                                                child: IconButton(
-                                                    iconSize:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.055,
-                                                    icon: Icon(
-                                                      Icons.close_sharp,
-                                                      color: Color.fromRGBO(
-                                                          0, 33, 71, 1),
-                                                      size:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.08,
-                                                    ),
-                                                    onPressed: () async {
-                                                      // Show a confirmation dialog to the user
-                                                      bool confirmed =
-                                                          await showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return AlertDialog(
-                                                            title: Text(
-                                                                'Confirmation'),
-                                                            content: Text(
-                                                                'Are you sure you want to delete this caretaker?'),
-                                                            actions: <Widget>[
-                                                              TextButton(
-                                                                child: Text(
-                                                                    'Cancel'),
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop(
-                                                                          false); // Return false when cancel button is pressed
-                                                                },
-                                                              ),
-                                                              TextButton(
-                                                                child: Text(
-                                                                    'Delete'),
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop(
-                                                                          true); // Return true when delete button is pressed
-                                                                },
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
-
-                                                      if (confirmed == true) {
-                                                        final url =
-                                                            'https://patientvitalsproject.000webhostapp.com/caretakersDelete.php';
-                                                        final response =
-                                                            await http.post(
-                                                          Uri.parse(url),
-                                                          body: {
-                                                            'caretaker_id':
-                                                                data.caretakerId
-                                                          },
-                                                        );
-
-                                                        if (response
-                                                                .statusCode ==
-                                                            200) {
-                                                          // Deletion successful
-                                                          showDialog(
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return AlertDialog(
-                                                                title: Text(
-                                                                    'Success'),
-                                                                content: Text(
-                                                                    'Caretaker deleted successfully.'),
-                                                                actions: <
-                                                                    Widget>[
-                                                                  TextButton(
-                                                                    child: Text(
-                                                                        'OK'),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop();
-                                                                    },
-                                                                  ),
-                                                                ],
-                                                              );
-                                                            },
-                                                          );
-                                                        } else {
-                                                          // Error occurred during deletion
-                                                          showDialog(
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return AlertDialog(
-                                                                title: Text(
-                                                                    'Error'),
-                                                                content: Text(
-                                                                    'Failed to delete caretaker.'),
-                                                                actions: <
-                                                                    Widget>[
-                                                                  TextButton(
-                                                                    child: Text(
-                                                                        'OK'),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop();
-                                                                    },
-                                                                  ),
-                                                                ],
-                                                              );
-                                                            },
-                                                          );
-                                                        }
-                                                      }
-                                                    }),
-                                              )
-                                      ],
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: caretakersList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  MyCareTakers data = caretakersList[index];
+                                  return OutlinedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromRGBO(
+                                          0,
+                                          33,
+                                          71,
+                                          1), // Set the button background color to green
+                                      side: BorderSide.none,
                                     ),
-                                  ],
-                                ),
+                                    child: Container(
+                                      margin: const EdgeInsets.fromLTRB(
+                                          10, 10, 10, 10),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                        color: const Color.fromRGBO(
+                                            255, 255, 255, 0.2),
+                                        border: Border.all(
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(""),
+                                              Text(
+                                                  usersList
+                                                      .firstWhere((thisUser) =>
+                                                          thisUser.user_id ==
+                                                          data.caretakerId)
+                                                      .username!,
+                                                  style: TextStyle(
+                                                      fontSize: 17,
+                                                      color: Colors.white)),
+                                              (data.caretakerId == user.user_id)
+                                                  ? Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15.0),
+                                                      ),
+                                                      child: IconButton(
+                                                        iconSize: 20,
+                                                        icon: Icon(
+                                                          Icons.close_sharp,
+                                                          color: Color.fromRGBO(
+                                                              0, 33, 71, 1),
+                                                          size: 29,
+                                                        ),
+                                                        onPressed: () {
+                                                          // Define your custom action here
+                                                          print(
+                                                              'Close pressed!');
+                                                        },
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15.0),
+                                                      ),
+                                                      child: IconButton(
+                                                          iconSize: 20,
+                                                          icon: Icon(
+                                                            Icons.close_sharp,
+                                                            color:
+                                                                Color.fromRGBO(
+                                                                    0,
+                                                                    33,
+                                                                    71,
+                                                                    1),
+                                                            size: 29,
+                                                          ),
+                                                          onPressed: () async {
+                                                            // Show a confirmation dialog to the user
+                                                            bool confirmed =
+                                                                await showDialog(
+                                                              context: context,
+                                                              builder:
+                                                                  (BuildContext
+                                                                      context) {
+                                                                return AlertDialog(
+                                                                  title: Text(
+                                                                      'Confirmation'),
+                                                                  content: Text(
+                                                                      'Are you sure you want to delete this caretaker?'),
+                                                                  actions: <
+                                                                      Widget>[
+                                                                    TextButton(
+                                                                      child: Text(
+                                                                          'Cancel'),
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.of(context)
+                                                                            .pop(false); // Return false when cancel button is pressed
+                                                                      },
+                                                                    ),
+                                                                    TextButton(
+                                                                      child: Text(
+                                                                          'Delete'),
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.of(context)
+                                                                            .pop(true); // Return true when delete button is pressed
+                                                                      },
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            );
+
+                                                            if (confirmed ==
+                                                                true) {
+                                                              final url =
+                                                                  '$host/caretakersDelete.php';
+                                                              final response =
+                                                                  await http
+                                                                      .post(
+                                                                Uri.parse(url),
+                                                                body: {
+                                                                  'caretaker_id':
+                                                                      data.caretakerId
+                                                                },
+                                                              );
+
+                                                              if (response
+                                                                      .statusCode ==
+                                                                  200) {
+                                                                // Deletion successful
+                                                                showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return AlertDialog(
+                                                                      title: Text(
+                                                                          'Success'),
+                                                                      content: Text(
+                                                                          'Caretaker deleted successfully.'),
+                                                                      actions: <
+                                                                          Widget>[
+                                                                        TextButton(
+                                                                          child:
+                                                                              Text('OK'),
+                                                                          onPressed:
+                                                                              () {
+                                                                            Navigator.of(context).pop();
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                              } else {
+                                                                // Error occurred during deletion
+                                                                showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return AlertDialog(
+                                                                      title: Text(
+                                                                          'Error'),
+                                                                      content: Text(
+                                                                          'Failed to delete caretaker.'),
+                                                                      actions: <
+                                                                          Widget>[
+                                                                        TextButton(
+                                                                          child:
+                                                                              Text('OK'),
+                                                                          onPressed:
+                                                                              () {
+                                                                            Navigator.of(context).pop();
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                              }
+                                                            }
+                                                          }),
+                                                    )
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
                     ),
                     Positioned(
                       top: -2, // Adjust the top position to control the overlap
@@ -398,10 +386,7 @@ class _CareTakersState extends State<CareTakers> {
                           child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text("Care Takers",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.055))),
+                                  style: TextStyle(fontSize: 20))),
                         ),
                       ),
                     ),
@@ -424,19 +409,13 @@ class _CareTakersState extends State<CareTakers> {
                                       child: Text("Device id: ",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042)),
+                                              fontSize: 15)),
                                     ),
                                     Expanded(
                                         child: Text(data.device_id,
                                             style: TextStyle(
                                                 color: Colors.white,
-                                                fontSize: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.042))),
+                                                fontSize: 15))),
                                   ],
                                 ),
                                 const SizedBox(
@@ -449,19 +428,13 @@ class _CareTakersState extends State<CareTakers> {
                                       child: Text("Device code: ",
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042)),
+                                              fontSize: 15)),
                                     ),
                                     Expanded(
                                         child: Text(data.secret_code,
                                             style: TextStyle(
                                                 color: Colors.white,
-                                                fontSize: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.042))),
+                                                fontSize: 15))),
                                   ],
                                 ),
                               ],
