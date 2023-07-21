@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,9 +49,10 @@ class _PatientDetailsState extends State<PatientDetails> {
   User gotuser;
   MyPatients gotpatient;
   String period = "seconds";
-  String tperiod = "lateMorning";
+  String tperiod = "earlyMorning";
   _PatientDetailsState(this.data, this.gotuser, this.gotpatient);
   Timer? timer;
+  DateTime firstDate = DateTime.now();
 
   String vital_sign = 'Systolic Blood Pressure';
   final List<String> items = [
@@ -240,6 +242,10 @@ class _PatientDetailsState extends State<PatientDetails> {
     cdata2.clear();
 
     if (tperiod == "earlyMorning") {
+      if (earlyMorningData.isNotEmpty) {
+        firstDate = DateTime.parse(
+            earlyMorningData[earlyMorningData.length - 1].created_date);
+      }
       for (MyData vitals in earlyMorningData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -249,6 +255,10 @@ class _PatientDetailsState extends State<PatientDetails> {
             double.parse(vitals.getVital(vital_sign)).round()));
       }
     } else if (tperiod == "lateMorning") {
+      if (lateMorningData.isNotEmpty) {
+        firstDate = DateTime.parse(
+            lateMorningData[lateMorningData.length - 1].created_date);
+      }
       for (MyData vitals in lateMorningData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -258,6 +268,10 @@ class _PatientDetailsState extends State<PatientDetails> {
             double.parse(vitals.getVital(vital_sign)).round()));
       }
     } else if (tperiod == "afternoon") {
+      if (afternoonData.isNotEmpty) {
+        firstDate = DateTime.parse(
+            afternoonData[afternoonData.length - 1].created_date);
+      }
       for (MyData vitals in afternoonData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -267,6 +281,10 @@ class _PatientDetailsState extends State<PatientDetails> {
             double.parse(vitals.getVital(vital_sign)).round()));
       }
     } else if (tperiod == "evening") {
+      if (eveningData.isNotEmpty) {
+        firstDate =
+            DateTime.parse(eveningData[eveningData.length - 1].created_date);
+      }
       for (MyData vitals in eveningData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -276,6 +294,10 @@ class _PatientDetailsState extends State<PatientDetails> {
             double.parse(vitals.getVital(vital_sign)).round()));
       }
     } else if (tperiod == "earlyNight") {
+      if (earlyNightData.isNotEmpty) {
+        firstDate = DateTime.parse(
+            earlyNightData[earlyNightData.length - 1].created_date);
+      }
       for (MyData vitals in earlyNightData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -285,6 +307,10 @@ class _PatientDetailsState extends State<PatientDetails> {
             double.parse(vitals.getVital(vital_sign)).round()));
       }
     } else if (tperiod == "lateNight") {
+      if (lateNightData.isNotEmpty) {
+        firstDate = DateTime.parse(
+            lateNightData[lateNightData.length - 1].created_date);
+      }
       for (MyData vitals in lateNightData) {
         cdata2.add(ChartData(
             DateTime.parse(vitals.created_date)
@@ -855,23 +881,6 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   ),
                                 ),
                                 // Custom tick formatter to divide the displayed values by 60,000
-                                tickFormatterSpec:
-                                    charts.BasicNumericTickFormatterSpec(
-                                  (num? value) => (value! < 60)
-                                      ? (value.round().toString() + " seconds")
-                                      : (value < 3600)
-                                          ? (value / 60).round().toString() +
-                                              " minutes"
-                                          : (value < 86400)
-                                              ? (value / 3600)
-                                                      .round()
-                                                      .toString() +
-                                                  " hours"
-                                              : (value / (3600 * 24))
-                                                      .round()
-                                                      .toString() +
-                                                  " days", // Divide by 60,000 and display with 1 decimal place
-                                ),
                               ),
                               primaryMeasureAxis: charts.NumericAxisSpec(
                                 tickProviderSpec:
@@ -894,7 +903,7 @@ class _PatientDetailsState extends State<PatientDetails> {
                             )),
                         Center(
                           child: Text(
-                            "Time",
+                            period,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -941,6 +950,13 @@ class _PatientDetailsState extends State<PatientDetails> {
                                       cdata2.clear();
 
                                       if (tperiod == "earlyMorning") {
+                                        if (earlyMorningData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              earlyMorningData[
+                                                      earlyMorningData.length -
+                                                          1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals
                                             in earlyMorningData) {
                                           cdata2.add(ChartData(
@@ -958,6 +974,13 @@ class _PatientDetailsState extends State<PatientDetails> {
                                                   .round()));
                                         }
                                       } else if (tperiod == "lateMorning") {
+                                        if (lateMorningData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              lateMorningData[
+                                                      lateMorningData.length -
+                                                          1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals in lateMorningData) {
                                           cdata2.add(ChartData(
                                               DateTime.parse(
@@ -974,6 +997,12 @@ class _PatientDetailsState extends State<PatientDetails> {
                                                   .round()));
                                         }
                                       } else if (tperiod == "afternoon") {
+                                        if (afternoonData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              afternoonData[
+                                                      afternoonData.length - 1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals in afternoonData) {
                                           cdata2.add(ChartData(
                                               DateTime.parse(
@@ -990,6 +1019,12 @@ class _PatientDetailsState extends State<PatientDetails> {
                                                   .round()));
                                         }
                                       } else if (tperiod == "evening") {
+                                        if (eveningData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              eveningData[
+                                                      eveningData.length - 1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals in eveningData) {
                                           cdata2.add(ChartData(
                                               DateTime.parse(
@@ -1005,6 +1040,12 @@ class _PatientDetailsState extends State<PatientDetails> {
                                                   .round()));
                                         }
                                       } else if (tperiod == "earlyNight") {
+                                        if (earlyNightData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              earlyNightData[
+                                                      earlyNightData.length - 1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals in earlyNightData) {
                                           cdata2.add(ChartData(
                                               DateTime.parse(
@@ -1021,6 +1062,12 @@ class _PatientDetailsState extends State<PatientDetails> {
                                                   .round()));
                                         }
                                       } else if (tperiod == "lateNight") {
+                                        if (lateNightData.isNotEmpty) {
+                                          firstDate = DateTime.parse(
+                                              lateNightData[
+                                                      lateNightData.length - 1]
+                                                  .created_date);
+                                        }
                                         for (MyData vitals in lateNightData) {
                                           cdata2.add(ChartData(
                                               DateTime.parse(
@@ -1074,6 +1121,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                 cdata2.clear();
 
                                 if (tperiod == "earlyMorning") {
+                                  if (earlyMorningData.isNotEmpty) {
+                                    firstDate = DateTime.parse(earlyMorningData[
+                                            earlyMorningData.length - 1]
+                                        .created_date);
+                                  }
                                   for (MyData vitals in earlyMorningData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1089,6 +1141,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                             .round()));
                                   }
                                 } else if (tperiod == "lateMorning") {
+                                  if (lateMorningData.isNotEmpty) {
+                                    firstDate = DateTime.parse(lateMorningData[
+                                            lateMorningData.length - 1]
+                                        .created_date);
+                                  }
                                   for (MyData vitals in lateMorningData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1103,6 +1160,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                             .round()));
                                   }
                                 } else if (tperiod == "afternoon") {
+                                  if (afternoonData.isNotEmpty) {
+                                    firstDate = DateTime.parse(
+                                        afternoonData[afternoonData.length - 1]
+                                            .created_date);
+                                  }
                                   for (MyData vitals in afternoonData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1117,6 +1179,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                             .round()));
                                   }
                                 } else if (tperiod == "evening") {
+                                  if (eveningData.isNotEmpty) {
+                                    firstDate = DateTime.parse(
+                                        eveningData[eveningData.length - 1]
+                                            .created_date);
+                                  }
                                   for (MyData vitals in eveningData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1130,6 +1197,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                             .round()));
                                   }
                                 } else if (tperiod == "earlyNight") {
+                                  if (earlyNightData.isNotEmpty) {
+                                    firstDate = DateTime.parse(earlyNightData[
+                                            earlyNightData.length - 1]
+                                        .created_date);
+                                  }
                                   for (MyData vitals in earlyNightData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1144,6 +1216,11 @@ class _PatientDetailsState extends State<PatientDetails> {
                                             .round()));
                                   }
                                 } else if (tperiod == "lateNight") {
+                                  if (lateNightData.isNotEmpty) {
+                                    firstDate = DateTime.parse(
+                                        lateNightData[lateNightData.length - 1]
+                                            .created_date);
+                                  }
                                   for (MyData vitals in lateNightData) {
                                     cdata2.add(ChartData(
                                         DateTime.parse(vitals.created_date)
@@ -1210,6 +1287,38 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   color: charts.MaterialPalette.black,
                                 ),
                               ),
+                              tickFormatterSpec:
+                                  charts.BasicNumericTickFormatterSpec(
+                                      (num? value) {
+                                if (value != null) {
+                                  // value = DateTime.now()
+                                  //     .difference(firstDate!.add(
+                                  //         Duration(seconds: value.toInt())))
+                                  //     .inSeconds;
+                                  return DateFormat("HH:mm:ss a").format(
+                                      firstDate.add(
+                                          Duration(seconds: value.toInt())));
+                                  // (value < 60)
+                                  //     ? (value.round().toString() +
+                                  //         " seconds ago")
+                                  //     : (value < 3600)
+                                  //         ? (value / 60).round().toString() +
+                                  //             " minutes ago"
+                                  //         : (value < 86400)
+                                  //             ? (value / 3600)
+                                  //                     .round()
+                                  //                     .toString() +
+                                  //                 " hours ago"
+                                  //             : (value / (3600 * 24))
+                                  //                     .round()
+                                  //                     .toString() +
+                                  //                 " days ago";
+                                } else {
+                                  return "Unknown"; // Default value for null or missing value
+                                }
+                              }
+                                      // Divide by 60,000 and display with 1 decimal place
+                                      ),
                             ),
                             primaryMeasureAxis: charts.NumericAxisSpec(
                               tickProviderSpec:
@@ -1232,7 +1341,7 @@ class _PatientDetailsState extends State<PatientDetails> {
                         ),
                         Center(
                           child: Text(
-                            period.toUpperCase(),
+                            "time",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
