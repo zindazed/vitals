@@ -12,6 +12,7 @@ import 'package:vital_monitor/logic/models/userModel.dart';
 import 'package:vital_monitor/logic/models/userProvider.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'global.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 // import 'package:mysql1/mysql1.dart';
 
@@ -226,7 +227,24 @@ class _PatientDetailsState extends State<PatientDetails> {
   @override
   Widget build(BuildContext context) {
     if (dataList.isEmpty) {
-      return Center(child: CircularProgressIndicator());
+      return Container(
+        color: const Color.fromRGBO(0, 33, 71, 1),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Image.asset(
+              'assets/image_icon.png',
+              width: 200, // Adjust the width as needed
+              height: 200, // Adjust the height as needed
+            ),
+            Center(
+                child: SpinKitSpinningLines(
+              color: Colors.white,
+              size: 50.0,
+            )),
+          ],
+        ),
+      );
     }
 
     Map<String, List<MyData>> sortedData = sortDataByTimePeriod(dataList2);
@@ -371,88 +389,93 @@ class _PatientDetailsState extends State<PatientDetails> {
                               ),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('Blood Pressure',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: Colors.white)),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(
-                                            dataList.first
-                                                    .blood_pressure_systolic +
-                                                "/" +
-                                                dataList.first
-                                                    .blood_pressure_diastolic,
-                                            style: TextStyle(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Blood Pressure',
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.047,
+                                          color: Colors.white)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                              dataList.first
+                                                      .blood_pressure_systolic +
+                                                  "/" +
+                                                  dataList.first
+                                                      .blood_pressure_diastolic,
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          0.08,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Text('mmHg',
+                                              style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
                                                         .width *
-                                                    0.08,
+                                                    0.042,
                                                 color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Text('mmHg',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042,
-                                              color: Colors.white,
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                    double.parse(dataList.first.blood_pressure_systolic) < 90 &&
-                                            double.parse(dataList.first.blood_pressure_diastolic) <
-                                                60
-                                        ? "Low"
-                                        : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
-                                                double.parse(dataList.first.blood_pressure_diastolic) <
-                                                    80
-                                            ? "Normal"
-                                            : double.parse(dataList.first.blood_pressure_systolic) < 130 &&
-                                                    double.parse(dataList.first.blood_pressure_diastolic) <
-                                                        80
-                                                ? "Elevated"
-                                                : double.parse(dataList.first.blood_pressure_systolic) < 140 ||
-                                                        double.parse(dataList.first.blood_pressure_diastolic) <
-                                                            90
-                                                    ? "Stage 1 Hypertension"
-                                                    : 'Stage 2 Hypertension',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: double.parse(dataList.first.blood_pressure_systolic) < 90 &&
-                                                double.parse(dataList.first.blood_pressure_diastolic) <
-                                                    60
-                                            ? Colors.blue
-                                            : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
-                                                    double.parse(dataList.first.blood_pressure_diastolic) <
-                                                        80
-                                                ? Colors.green
-                                                : double.parse(dataList.first.blood_pressure_systolic) <
-                                                            130 &&
-                                                        double.parse(dataList.first.blood_pressure_diastolic) < 80
-                                                    ? Colors.yellow
-                                                    : double.parse(dataList.first.blood_pressure_systolic) < 140 || double.parse(dataList.first.blood_pressure_diastolic) < 90
-                                                        ? Colors.orange
-                                                        : Colors.red,
-                                        fontWeight: FontWeight.bold)),
-                              ],
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                      double.parse(dataList.first.blood_pressure_systolic) < 90 &&
+                                              double.parse(dataList.first.blood_pressure_diastolic) <
+                                                  60
+                                          ? "Low"
+                                          : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
+                                                  double.parse(dataList.first.blood_pressure_diastolic) <
+                                                      80
+                                              ? "Normal"
+                                              : double.parse(dataList.first.blood_pressure_systolic) < 130 &&
+                                                      double.parse(dataList.first.blood_pressure_diastolic) <
+                                                          80
+                                                  ? "Elevated"
+                                                  : double.parse(dataList.first.blood_pressure_systolic) < 140 ||
+                                                          double.parse(dataList.first.blood_pressure_diastolic) <
+                                                              90
+                                                      ? "Stage 1 Hypertension"
+                                                      : 'Stage 2 Hypertension',
+                                      style: TextStyle(
+                                          fontSize:
+                                              MediaQuery.of(context).size.width *
+                                                  0.047,
+                                          color: double.parse(dataList.first.blood_pressure_systolic) < 90 &&
+                                                  double.parse(dataList.first.blood_pressure_diastolic) <
+                                                      60
+                                              ? Colors.blue
+                                              : double.parse(dataList.first.blood_pressure_systolic) < 120 ||
+                                                      double.parse(dataList.first.blood_pressure_diastolic) <
+                                                          80
+                                                  ? Colors.green
+                                                  : double.parse(dataList.first.blood_pressure_systolic) <
+                                                              130 &&
+                                                          double.parse(dataList.first.blood_pressure_diastolic) < 80
+                                                      ? Colors.yellow
+                                                      : double.parse(dataList.first.blood_pressure_systolic) < 140 || double.parse(dataList.first.blood_pressure_diastolic) < 90
+                                                          ? Colors.orange
+                                                          : Colors.red,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -473,74 +496,79 @@ class _PatientDetailsState extends State<PatientDetails> {
                               ),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('Temperature',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: Colors.white)),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(dataList.first.body_temperature,
-                                            style: TextStyle(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Temperature',
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.047,
+                                          color: Colors.white)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(dataList.first.body_temperature,
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          0.08,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Text('°C',
+                                              style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
                                                         .width *
-                                                    0.08,
+                                                    0.042,
                                                 color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Text('°C',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042,
-                                              color: Colors.white,
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                    double.parse(dataList.first.body_temperature) <
-                                            35.9
-                                        ? 'Low'
-                                        : double.parse(dataList.first.body_temperature) <
-                                                37.2
-                                            ? "Normal"
-                                            : double.parse(dataList.first
-                                                        .body_temperature) <
-                                                    38.7
-                                                ? "Moderate Fever"
-                                                : "High Fever",
-                                    style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width *
-                                            0.047,
-                                        color: double.parse(dataList
-                                                    .first.body_temperature) <
-                                                35.9
-                                            ? Colors.blue
-                                            : double.parse(dataList.first
-                                                        .body_temperature) <
-                                                    37.2
-                                                ? Colors.green
-                                                : double.parse(dataList.first
-                                                            .body_temperature) <
-                                                        38.7
-                                                    ? Colors.orange
-                                                    : Colors.red,
-                                        fontWeight: FontWeight.bold)),
-                              ],
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                      double.parse(dataList.first.body_temperature) <
+                                              35.9
+                                          ? 'Low'
+                                          : double.parse(dataList
+                                                      .first.body_temperature) <
+                                                  37.2
+                                              ? "Normal"
+                                              : double.parse(dataList.first
+                                                          .body_temperature) <
+                                                      38.7
+                                                  ? "Moderate Fever"
+                                                  : "High Fever",
+                                      style: TextStyle(
+                                          fontSize:
+                                              MediaQuery.of(context).size.width *
+                                                  0.047,
+                                          color: double.parse(dataList
+                                                      .first.body_temperature) <
+                                                  35.9
+                                              ? Colors.blue
+                                              : double.parse(dataList.first
+                                                          .body_temperature) <
+                                                      37.2
+                                                  ? Colors.green
+                                                  : double.parse(dataList.first.body_temperature) < 38.7
+                                                      ? Colors.orange
+                                                      : Colors.red,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -566,75 +594,80 @@ class _PatientDetailsState extends State<PatientDetails> {
                               ),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('Pulse Rate',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: Colors.white)),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(dataList.first.pulse_rate,
-                                            style: TextStyle(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Pulse Rate',
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.047,
+                                          color: Colors.white)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(dataList.first.pulse_rate,
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          0.08,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Text('bpm',
+                                              style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
                                                         .width *
-                                                    0.08,
+                                                    0.042,
                                                 color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Text('bpm',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042,
-                                              color: Colors.white,
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                    double.parse(dataList.first.pulse_rate) < 80 &&
-                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
-                                                    1 ||
-                                            double.parse(dataList.first.pulse_rate) < 70 &&
-                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
-                                                    18 ||
-                                            double.parse(dataList.first.pulse_rate) < 60 &&
-                                                (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365)
-                                                        .floor() >=
-                                                    18
-                                        ? "Low"
-                                        : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
-                                                double.parse(dataList.first.pulse_rate) > 100 &&
-                                                    (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >
-                                                        1
-                                            ? "High"
-                                            : "Normal",
-                                    style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width *
-                                            0.047,
-                                        color: double.parse(dataList.first.pulse_rate) < 80 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
-                                                double.parse(dataList.first.pulse_rate) < 70 &&
-                                                    (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 18 ||
-                                                double.parse(dataList.first.pulse_rate) < 60 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >= 18
-                                            ? Colors.blue
-                                            : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 || double.parse(dataList.first.pulse_rate) > 100 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() > 1
-                                                ? Colors.red
-                                                : Colors.green,
-                                        fontWeight: FontWeight.bold)),
-                              ],
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                      double.parse(dataList.first.pulse_rate) < 80 &&
+                                                  (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
+                                                      1 ||
+                                              double.parse(dataList.first.pulse_rate) < 70 &&
+                                                  (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() <
+                                                      18 ||
+                                              double.parse(dataList.first.pulse_rate) < 60 &&
+                                                  (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365)
+                                                          .floor() >=
+                                                      18
+                                          ? "Low"
+                                          : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
+                                                  double.parse(dataList.first.pulse_rate) > 100 &&
+                                                      (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >
+                                                          1
+                                              ? "High"
+                                              : "Normal",
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context).size.width *
+                                              0.047,
+                                          color: double.parse(dataList.first.pulse_rate) < 80 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 ||
+                                                  double.parse(dataList.first.pulse_rate) < 70 &&
+                                                      (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 18 ||
+                                                  double.parse(dataList.first.pulse_rate) < 60 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() >= 18
+                                              ? Colors.blue
+                                              : double.parse(dataList.first.pulse_rate) > 160 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() < 1 || double.parse(dataList.first.pulse_rate) > 100 && (DateTime.parse(gotpatient.dob).difference(DateTime.now()).inDays / 365).floor() > 1
+                                                  ? Colors.red
+                                                  : Colors.green,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -655,69 +688,75 @@ class _PatientDetailsState extends State<PatientDetails> {
                               ),
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('O2 Saturation',
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: Colors.white)),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text(dataList.first.oxygen_saturation,
-                                            style: TextStyle(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('O2 Saturation',
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.047,
+                                          color: Colors.white)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Text(dataList.first.oxygen_saturation,
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          0.08,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Text('%',
+                                              style: TextStyle(
                                                 fontSize: MediaQuery.of(context)
                                                         .size
                                                         .width *
-                                                    0.08,
+                                                    0.042,
                                                 color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: [
-                                        Text('%',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.042,
-                                              color: Colors.white,
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                    double.parse(dataList
-                                                .first.oxygen_saturation) <
-                                            91
-                                        ? "Low"
-                                        : double.parse(dataList
-                                                    .first.oxygen_saturation) <
-                                                96
-                                            ? "Concerning"
-                                            : "Normal",
-                                    style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.047,
-                                        color: double.parse(dataList
-                                                    .first.oxygen_saturation) <
-                                                91
-                                            ? Colors.red
-                                            : double.parse(dataList.first
-                                                        .oxygen_saturation) <
-                                                    96
-                                                ? Colors.yellow
-                                                : Colors.green,
-                                        fontWeight: FontWeight.bold)),
-                              ],
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                      double.parse(dataList
+                                                  .first.oxygen_saturation) <
+                                              91
+                                          ? "Low"
+                                          : double.parse(dataList.first
+                                                      .oxygen_saturation) <
+                                                  96
+                                              ? "Concerning"
+                                              : "Normal",
+                                      style: TextStyle(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.047,
+                                          color: double.parse(dataList.first
+                                                      .oxygen_saturation) <
+                                                  91
+                                              ? Colors.red
+                                              : double.parse(dataList.first
+                                                          .oxygen_saturation) <
+                                                      96
+                                                  ? Colors.yellow
+                                                  : Colors.green,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -1295,9 +1334,8 @@ class _PatientDetailsState extends State<PatientDetails> {
                                   //     .difference(firstDate!.add(
                                   //         Duration(seconds: value.toInt())))
                                   //     .inSeconds;
-                                  return DateFormat("HH:mm:ss a").format(
-                                      firstDate.add(
-                                          Duration(seconds: value.toInt())));
+                                  return DateFormat("HH:mm").format(firstDate
+                                      .add(Duration(seconds: value.toInt())));
                                   // (value < 60)
                                   //     ? (value.round().toString() +
                                   //         " seconds ago")

@@ -16,6 +16,7 @@ import 'package:vital_monitor/logic/models/userProvider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'global.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class DeviceMgt extends StatefulWidget {
   String? userId;
@@ -152,7 +153,11 @@ class _DeviceMgtState extends State<DeviceMgt> {
                         ),
                       ),
                       child: (patientsList.isEmpty)
-                          ? Center(child: CircularProgressIndicator())
+                          ? Center(
+                              child: SpinKitFadingCube(
+                              color: Colors.white,
+                              size: 50.0,
+                            ))
                           : Center(
                               // Center is a layout widget. It takes a single child and positions it
                               // in the middle of the parent.
@@ -375,12 +380,16 @@ class _DeviceMgtState extends State<DeviceMgt> {
                                               ),
                                             ],
                                           ),
-                                        ).then((value) => Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      DeviceMgt(user.user_id)),
-                                            ));
+                                        ).then((value) => {
+                                              Navigator.pop(context),
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        DeviceMgt(
+                                                            user.user_id)),
+                                              )
+                                            });
                                       } else {
                                         showDialog(
                                           context: context,

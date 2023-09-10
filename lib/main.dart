@@ -15,6 +15,7 @@ import 'package:vital_monitor/screens/monitoredPatients.dart';
 import 'package:vital_monitor/screens/screenb.dart';
 import 'logic/models/userProvider.dart';
 import 'screens/global.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 void main() => runApp(MyApp());
 
@@ -357,7 +358,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
                             child: isLoading
-                                ? CircularProgressIndicator()
+                                ? SpinKitWaveSpinner(
+                                    color: Colors.white,
+                                    size: 50.0,
+                                  )
                                 : const Text(
                                     "Sign Up",
                                     style: TextStyle(
@@ -639,7 +643,10 @@ class _LoginPageState extends State<LoginPage> {
                               color: const Color.fromRGBO(255, 255, 255, 0.2),
                             ),
                             child: isLoading
-                                ? CircularProgressIndicator()
+                                ? SpinKitPouringHourGlassRefined(
+                                    color: Colors.white,
+                                    size: 50.0,
+                                  )
                                 : const Text(
                                     "Login",
                                     style: TextStyle(

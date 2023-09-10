@@ -1,4 +1,6 @@
-String host = "http://192.168.43.120/";
+// String host = "http://192.168.240.106/";
+String host = "http://192.168.246.37/";
+// String host = "http://192.168.43.120/";
 // String host = "http://patientvitals.rf.gd/";
 
 String xorCipher(String message, String key) {

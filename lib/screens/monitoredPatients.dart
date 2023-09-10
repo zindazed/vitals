@@ -10,6 +10,7 @@ import 'screenb.dart';
 import 'package:vital_monitor/logic/models/userModel.dart';
 import 'package:vital_monitor/logic/models/userProvider.dart';
 import 'global.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 // import 'package:mysql1/mysql1.dart';
 
 // import 'package:flutter/material.dart';
@@ -176,7 +177,11 @@ class _MonitoredPatientsState extends State<MonitoredPatients> {
                         // in the middle of the parent.
 
                         child: (dataList.isEmpty)
-                            ? Center(child: CircularProgressIndicator())
+                            ? Center(
+                                child: SpinKitFadingCube(
+                                color: Colors.white,
+                                size: 50.0,
+                              ))
                             : SingleChildScrollView(
                                 child: ListView.builder(
                                   shrinkWrap: true,
